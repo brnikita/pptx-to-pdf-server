@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  pptx-to-pdf-server:
+    build: ./backend  
+    ports:
+      - "8000:8000"  
+    volumes:
+      - ./backend:/app  
+    env_file:
+      - .env  
+  unoserver:
+    image: libreofficedocker/libreoffice-unoserver:3.19-9c28c22 
+    ports:
+      - "2002:2002" 

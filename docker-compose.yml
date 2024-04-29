@@ -3,7 +3,8 @@ services:
   pptx-to-pdf-server:
     build: ./backend  
     ports:
-      - "8000:8000"  
+      - "8000:8000"
+      - "5678:5678" # Map debugpy port  
     volumes:
       - ./backend:/app  
     env_file:

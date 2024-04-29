@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "PPTX-TO_PDF",
+            "type": "python",
+            "request": "launch",
+            "program": "./backend/app/main.py",
+            "console": "integratedTerminal",
+            "args": ["run", "app.main:app", "--reload"],
+            "env": {
+                "VAR_NAME": "value"
+            }
+        }
+    ]
+}

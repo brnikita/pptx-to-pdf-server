@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, HTTPException, File
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import os
 import uuid
@@ -13,6 +14,18 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 BUCKET_NAME = os.getenv('BUCKET_NAME')
 UNOSERVER_URL = os.getenv('UNOSERVER_URL', 'http://unoserver:2002')
+CORS_ORIGINS = os.getenv('CORS_ORIGINS', "http://localhost:3000")
+
+# Configure CORS
+allowed_origins = [origin.strip() for origin in CORS_ORIGINS.split(",")]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
 
 # S3 client setup
 s3 = boto3.client(

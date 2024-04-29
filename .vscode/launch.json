@@ -6,15 +6,16 @@
             "type": "python",
             "request": "attach",
             "connect": {
-                "host": "localhost",
-                "port": 5678
+                "host": "localhost", 
+                "port": 5678 
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/backend", 
-                    "remoteRoot": "/app" 
+                    "localRoot": "${workspaceFolder}/backend/app", 
+                    "remoteRoot": "/app/app" 
                 }
-            ]
+            ],
+            "justMyCode": true
         }
     ]
 }

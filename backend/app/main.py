@@ -12,6 +12,7 @@ app = FastAPI()
 # Environment variables
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_ACCESS_REGION = os.getenv('AWS_ACCESS_REGION')
 BUCKET_NAME = os.getenv('BUCKET_NAME')
 UNOSERVER_URL = os.getenv('UNOSERVER_URL', 'http://unoserver:2002')
 CORS_ORIGINS = os.getenv('CORS_ORIGINS', "http://localhost:3000")
@@ -30,6 +31,7 @@ app.add_middleware(
 # S3 client setup
 s3 = boto3.client(
     's3',
+    region_name=AWS_ACCESS_REGION,
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )

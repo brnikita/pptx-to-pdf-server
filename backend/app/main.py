@@ -44,7 +44,11 @@ async def upload_files(files: List[UploadFile] = File(...)):
         file_object = file.file
         file_name = f"input/{file_id}/{file.filename}"
 
-        s3.upload_fileobj(file_object, BUCKET_NAME, file_name)
+        s3.upload_fileobj(
+            Fileobj=file_object,
+            Bucket=BUCKET_NAME,
+            Key=file_name,
+        )
         file_ids.append({"file_id": file_id, "filename": file_name})
     
     return {"file_ids": file_ids}

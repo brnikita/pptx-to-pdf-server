@@ -79,30 +79,46 @@ async def upload_files(files: List[UploadFile] = File(...)):
 @app.post("/convert_files", response_model=ConversionStatusesResponse)
 async def convert_files(request: FileIDsRequest):
     conversion_statuses = []
-    for file_id in request.file_ids:
-        input_file_key = file_id.filename
-        output_file_key = f"output/{file_id.file_id}.pdf"
-        
-        try:
-            presigned_url = s3.generate_presigned_url('get_object',
-                                                      Params={'Bucket': BUCKET_NAME,
-                                                              'Key': input_file_key},
-                                                      ExpiresIn=3600)
+    for file_info in request.file_ids:
+        input_file_key = file_info.filename
+        output_file_key = f"output/{file_info.file_id}.pdf"
 
-            response = requests.post(f"{UNOSERVER_URL}/convert", json={
-                'file_url': presigned_url, 
-                'output_format': 'pdf'
-            })
+        try:
+            # Generate a presigned URL for the input file
+            presigned_url = s3.generate_presigned_url('get_object',
+                                                      Params={'Bucket': BUCKET_NAME, 'Key': input_file_key},
+                                                      ExpiresIn=3600)
+            
+            # Download the file to convert because unoserver requires a file in form-data
+            #TODO: download to specific folder, add to gitignore
+            file_response = requests.get(presigned_url)
+            # Create a temporary file to hold the downloaded file.
+            with open(file_info.file_id, 'wb') as temp_file:
+                temp_file.write(file_response.content)
+            
+            # Prepare the file for upload with a MIME multipart/form-data request
+            with open(file_info.file_id, 'rb') as file_to_convert:
+                files = {
+                    "file": (input_file_key, file_to_convert),
+                    "convert-to": (None, "pdf"),
+                }
+                
+                response = requests.post(f"{UNOSERVER_URL}/request", files=files)
+            
+            # Cleanup the temporary file
+            os.remove(file_info.file_id)
 
             if response.status_code == 200:
+                # If conversion is successful, save the converted file to S3
                 s3.put_object(Bucket=BUCKET_NAME, Key=output_file_key, Body=response.content)
                 status = "done"
             else:
                 status = "failed"
-        except requests.RequestException:
+        except requests.RequestException as e:
+            print(f"Request to unoserver failed: {e}")
             status = "failed"
         
-        conversion_statuses.append({"file_id": file_id, "status": status})
+        conversion_statuses.append({"file_id": file_info.file_id, "status": status})
 
     return ConversionStatusesResponse(conversion_statuses=conversion_statuses)
 

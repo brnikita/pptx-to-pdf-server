@@ -27,7 +27,7 @@ class FileIDsResponse(BaseModel):
     file_ids: List[FileIDModel]
 
 class FileIDsRequest(BaseModel):
-    file_ids: List[str]
+    file_ids: List[FileIDModel]
 
 class ConversionStatusModel(BaseModel):
     file_id: str
@@ -80,8 +80,8 @@ async def upload_files(files: List[UploadFile] = File(...)):
 async def convert_files(request: FileIDsRequest):
     conversion_statuses = []
     for file_id in request.file_ids:
-        input_file_key = f"input/{file_id}/{file_id}.pptx"
-        output_file_key = f"output/{file_id}.pdf"
+        input_file_key = file_id.filename
+        output_file_key = f"output/{file_id.file_id}.pdf"
         
         try:
             presigned_url = s3.generate_presigned_url('get_object',

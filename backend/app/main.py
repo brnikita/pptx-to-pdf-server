@@ -79,6 +79,9 @@ async def upload_files(files: List[UploadFile] = File(...)):
 @app.post("/convert_files", response_model=ConversionStatusesResponse)
 async def convert_files(request: FileIDsRequest):
     conversion_statuses = []
+    temp_dir = "./temp_downloads"
+    os.makedirs(temp_dir, exist_ok=True)
+
     for file_info in request.file_ids:
         input_file_key = file_info.filename
         output_file_key = f"output/{file_info.file_id}.pdf"
@@ -90,14 +93,13 @@ async def convert_files(request: FileIDsRequest):
                                                       ExpiresIn=3600)
             
             # Download the file to convert because unoserver requires a file in form-data
-            #TODO: download to specific folder, add to gitignore
             file_response = requests.get(presigned_url)
             # Create a temporary file to hold the downloaded file.
-            with open(file_info.file_id, 'wb') as temp_file:
+            with open(os.path.join(temp_dir, file_info.file_id), 'wb') as temp_file:
                 temp_file.write(file_response.content)
             
             # Prepare the file for upload with a MIME multipart/form-data request
-            with open(file_info.file_id, 'rb') as file_to_convert:
+            with open(os.path.join(temp_dir, file_info.file_id), 'rb') as file_to_convert:
                 files = {
                     "file": (input_file_key, file_to_convert),
                     "convert-to": (None, "pdf"),
@@ -106,7 +108,7 @@ async def convert_files(request: FileIDsRequest):
                 response = requests.post(f"{UNOSERVER_URL}/request", files=files)
             
             # Cleanup the temporary file
-            os.remove(file_info.file_id)
+            os.remove(os.path.join(temp_dir, file_info.file_id))
 
             if response.status_code == 200:
                 # If conversion is successful, save the converted file to S3

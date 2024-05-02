@@ -20,3 +20,18 @@ async def convert_files(request: FileIDsRequest):
         return ConversionStatusesResponse(conversion_statuses=conversion_statuses)
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error))
+    
+@router.post("/upload_and_convert", response_model=ConversionStatusesResponse)
+async def upload_and_convert(files: List[UploadFile] = File(...)):
+    try:
+        # Step 1: Upload files and get their IDs/paths.
+        file_ids = s3_service.upload_files(files)
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error))
+        
+    try:
+    # Step 2: Convert uploaded files
+        conversion_statuses = conversion_service.convert_files(file_ids)
+        return ConversionStatusesResponse(conversion_statuses=conversion_statuses)
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error))

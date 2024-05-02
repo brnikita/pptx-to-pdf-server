@@ -6,7 +6,7 @@ from ..services import s3_service, conversion_service
 router = APIRouter()
 
 @router.post("/upload_files", response_model=FileIDsResponse)
-async def upload_files(files: List[UploadFile] = File(...)):
+async def upload_files(files: List[UploadFile] = File(..., limit="200MB")):
     try:
         file_ids = s3_service.upload_files(files)
         return FileIDsResponse(file_ids=file_ids)
@@ -22,7 +22,7 @@ async def convert_files(request: FileIDsRequest):
         raise HTTPException(status_code=500, detail=str(error))
     
 @router.post("/upload_and_convert", response_model=ConversionStatusesResponse)
-async def upload_and_convert(files: List[UploadFile] = File(...)):
+async def upload_and_convert(files: List[UploadFile] = File(..., limit="200MB")):
     try:
         # Step 1: Upload files and get their IDs/paths.
         file_ids = s3_service.upload_files(files)
